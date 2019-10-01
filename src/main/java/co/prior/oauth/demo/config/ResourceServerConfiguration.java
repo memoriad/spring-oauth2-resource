@@ -1,6 +1,7 @@
 package co.prior.oauth.demo.config;
 
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,6 +12,8 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationManager;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
+
+import co.prior.oauth.demo.filter.CorsConfigFilter;
 
 @Configuration
 @EnableResourceServer
@@ -37,11 +40,23 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
-		http.httpBasic().disable().anonymous().and().authorizeRequests().antMatchers("/user/**").authenticated()
+		http.httpBasic().disable().anonymous().and()
+				.cors().and()
+				.csrf().disable().authorizeRequests().antMatchers("/user/**").authenticated()
 				.antMatchers("/public/**").permitAll()
 				.and()
 				.sessionManagement()
 				.sessionCreationPolicy(SessionCreationPolicy.NEVER);
 	}
-}
+	
+	@Bean
+	public FilterRegistrationBean<CorsConfigFilter> requestResponseFilter() {
+		FilterRegistrationBean<CorsConfigFilter> registrationBean = new FilterRegistrationBean<>();
 
+		registrationBean.setFilter(new CorsConfigFilter());
+		registrationBean.addUrlPatterns("/*");
+
+		return registrationBean;
+	}
+	
+}
